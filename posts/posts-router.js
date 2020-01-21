@@ -134,7 +134,49 @@ router.post('/:id/comments', (req, res) => {
         error: "The post information could not be retieved.",
         err
       });
+    });
+});
+
+//PUT edit existing post
+router.put('/:id', (req, res) => {
+
+  const id = req.params.id;
+  const body = req.body;
+
+  db.findById(id) //checking if post exists
+    .then(post => {
+      if(post.length > 0) {
+        if(body.title && body.contents) {
+          db.update(id, body)
+            .then(editedPost => { //returns updated version of the post
+              db.findById(id)
+                .then(post => {
+                  res.status(200).json(post);
+                });
+            })
+            .catch(err => {
+              res.status(500).json({
+                error: "The post information could not be modified.",
+                err
+              });
+            })
+        }else {
+          res.status(400).json({
+            errorMessage: "Please provide title and contents for the post."
+          })
+        }
+      }else {
+        res.status(404).json({
+          message: "The post with the specified ID does not exist."
+        })
+      }
     })
+    .catch(err => {
+      res.status(500).json({
+        error: "The post informatio could not be retrieved.",
+        err
+      });
+    });
 });
 
 module.exports = router;
