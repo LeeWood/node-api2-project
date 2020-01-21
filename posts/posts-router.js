@@ -2,8 +2,6 @@ const express = require('express');
 const db = require('../data/db');
 const router = express.Router();
 
-//! Try the abort() method for actually stopping a request if a condition has been met. If successful, try this in the first project as well.
-
 //GET all posts
 router.get('/', (req, res) => {
 
@@ -94,6 +92,49 @@ router.post('/', (req, res) => {
     });
     //process.exit();
   }
+});
+
+//POST new comment to specific post
+router.post('/:id/comments', (req, res) => {
+
+  const id = req.params.id;
+  const newComment = req.body.text;
+
+  //first checking if post with specified id exists
+  db.findById(id)
+    .then(post => {
+      if(post.length > 0) {
+        if(req.body.text){
+          db.insertComment({
+            text: newComment,
+            post_id: id
+          })
+          .then(comment => {
+            res.status(201).json(comment);
+          })
+          .catch(err => {
+            res.status(500).json({
+              errorMessage: "There was a problem saving the comment to the database",
+              err
+            });
+          });
+        } else {
+          res.status(400).json({
+            errorMessage: "Please provide text for the comment"
+          });
+        }
+      } else {
+        res.status(404).json({
+          message: "The post with the specified ID does not exist."
+        })
+      }
+    })
+    .catch(err => { //err message for post ID conditional check
+      res.status(500).json({
+        error: "The post information could not be retieved.",
+        err
+      });
+    })
 });
 
 module.exports = router;
