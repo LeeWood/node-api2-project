@@ -90,7 +90,6 @@ router.post('/', (req, res) => {
     res.status(400).json({
       errorMessage: "Please provide title and contents for the post."
     });
-    //process.exit();
   }
 });
 
@@ -174,6 +173,41 @@ router.put('/:id', (req, res) => {
     .catch(err => {
       res.status(500).json({
         error: "The post informatio could not be retrieved.",
+        err
+      });
+    });
+});
+
+//DELETE existing post
+router.delete('/:id', (req, res) => {
+
+  const id = req.params.id;
+
+  db.findById(id)
+    .then(post => {
+      if(post.length > 0) {
+        db.remove(id)
+          .then(delPost => {
+            res.status(200).json({
+              success: true,
+              message: "Post has been deleted."
+            });
+          })
+          .catch(err => {
+            res.status(500).json({
+              success: false,
+              message: "The post could not be removed"
+            });
+          })
+      } else {
+        res.status(404).json({
+          message: "The post with the specified ID does not exist."
+        });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({
+        error: "The post information could not be retrieved.",
         err
       });
     });
